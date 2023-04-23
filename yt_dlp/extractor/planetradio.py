@@ -1,0 +1,158 @@
+import time
+
+from .common import InfoExtractor
+from ..utils import (
+    determine_ext,
+    HEADRequest,
+    update_url_query,
+    urlhandle_detect_ext,
+    traverse_obj
+)
+
+
+class PlanetRadioLiveIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:planetradio\.co\.uk|radioplay\.(dk|no|fi)|soundis\.(ro|gr))/(?P<id>[\w|-]+)/(?:player|spiller)/$'
+    IE_DESC = "planetradio.co.uk, radioplay.dk, radioplay.no, radioplay.fi, soundis.ro, soundis.gr"
+    _TESTS = [{
+        'url': 'https://planetradio.co.uk/kiss/player/',
+        'info_dict': {
+            'id': 'kiss',
+            'ext': 'm4a',
+            'title': str,
+            'description': 'The Beat Of The UK',
+            'live_status': 'is_live',
+        }
+    }, {
+        'url': 'https://radioplay.no/radio-rock/spiller/',
+        'info_dict': {
+            'id': 'radio-rock',
+            'ext': 'm4a',
+        }
+    }]
+
+    def _real_extract(self, url):
+        station_id = self._match_id(url)
+        meta = self._download_json(f'https://listenapi.planetradio.co.uk/api9.2/initdadi/{station_id}', station_id)
+
+        streams = meta['stationStreams']
+        formats = []
+
+        seen_urls = []
+
+        for stream in streams:
+            url = stream['streamUrl']
+            if url in seen_urls:
+                pass
+            else:
+                seen_urls.append(url)
+                url = update_url_query(url, {'aw_0_1st.skey': int(time.time())})
+                stream_type = stream.get('streamType')
+                info = {
+                    'vcodec': 'none',
+    #                'quality': -1
+                }
+
+                format_id = f'{stream_type}-{stream["streamQuality"]}'
+                quality = -1
+
+                if stream_type == 'hls':
+                    info = {**info, **self._extract_m3u8_formats(url, station_id)[0]}
+                else:
+                    info['url'] = url
+                    info['tbr'] = stream.get('streamBitRate')
+                    info['abr'] = info.get('tbr')
+                
+                if not determine_ext(url, default_ext=False):
+                    urlh = self._request_webpage(url, station_id, note='Determining source extension')
+                    ext = urlhandle_detect_ext(urlh)
+                    if ext == 'aac':
+                        ext = 'm4a'
+                    info['ext'] = ext
+                elif stream_type == 'adts':
+                    info['ext'] = 'm4a'
+                elif stream_type == 'mp3':
+                    info['ext'] = 'mp3'
+    #                quality -= 1
+    
+                if stream.get('streamPremium'):
+                    info['format_note'] = 'Premium'
+                    info['preference'] = 1
+                    format_id += "-premium"
+
+                if stream['streamQuality'] == 'lq':
+                    quality -= 1
+
+                info['format_id'] = format_id
+                info['quality'] = quality
+
+#                if info.get('acodec') == None:
+#                    info['acodec'] = info['ext']
+
+                formats.append(info)
+
+        return {
+            'id': station_id,
+            'title': meta['stationName'],
+            'description': meta.get('stationStrapline'),
+            'is_live': True,
+            'formats': formats,
+        }
+
+class PlanetRadioOnDemandIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:planetradio\.co\.uk|radioplay\.(dk|no|fi)|soundis\.(ro|gr))/(?P<station>[\w|-]+)/player/(?P<episode>\d+)/?$'
+    _TESTS = [{
+        'url': 'https://planetradio.co.uk/kiss/player/208301192/',
+        'info_dict': {
+            'id': '208301192',
+            'title': 'Dance: Mark Knight',
+            'ext': 'm4a',
+            'thumbnail': 'md5:6198ea41a24e7176d3d58f66f3c33180',
+            'description': 'Get involved @KISSFMUK #KISSNights',
+            'duration': 7200,
+        }
+    }]
+    
+    def _get_format_dict(self, url):
+        info = {
+            'url': url,
+            'vcodec': 'none',
+            'ext': url.split(".")[-1],  # determine_ext gives 'php'
+            'preference': -1,
+        }
+        info['acodec'] = info['ext']
+        if info['ext'] == 'mp3':
+            info['preference'] -= 1
+        return info
+    
+    def _real_extract(self, url):
+        station, episode = self._match_valid_url(url).group('station', 'episode')
+            
+        formats = []
+        
+        station_meta = self._download_json(f'https://listenapi.planetradio.co.uk/api9.2/listenagaindadi/{station}', station)
+
+        episode_meta = {}
+        for date, episodes in station_meta.items():
+            for ep in episodes:
+                if ep['episodeid'] == int(episode):
+                    episode_meta = ep
+        
+        formats.append(self._get_format_dict(episode_meta.get('mediaurl')))
+        formats.append(self._get_format_dict(episode_meta.get('mediaurl_mp3')))
+        
+        return {
+            'id': episode,
+            'duration': episode_meta['duration'],
+            'title': episode_meta['title'],
+            'description': episode_meta.get('shortdesc'),
+            'thumbnails': [{
+                'url': episode_meta.get('imageurl'),
+                'id': 'imageurl',
+                'preference': -1,
+                }, {
+                'url': episode_meta.get('imageurl_square'),
+                'id': 'imageurl_square',
+                'preference': -2,
+                }],
+            'formats': formats,
+        }
