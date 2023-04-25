@@ -148,11 +148,11 @@ class PlanetRadioOnDemandIE(InfoExtractor):
             'thumbnails': [{
                 'url': episode_meta.get('imageurl'),
                 'id': 'imageurl',
-                'preference': -1,
+                'preference': -2,
                 }, {
                 'url': episode_meta.get('imageurl_square'),
                 'id': 'imageurl_square',
-                'preference': -2,
+                'preference': -1,
                 }],
             'formats': formats,
         }
