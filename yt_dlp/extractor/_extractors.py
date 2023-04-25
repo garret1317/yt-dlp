@@ -1432,7 +1432,10 @@ from .pixivsketch import (
 )
 from .pladform import PladformIE
 from .planetmarathi import PlanetMarathiIE
-from .planetradio import PlanetRadioLiveIE
+from .planetradio import (
+    PlanetRadioLiveIE,
+    PlanetRadioOnDemandIE
+)
 from .platzi import (
     PlatziIE,
     PlatziCourseIE,
