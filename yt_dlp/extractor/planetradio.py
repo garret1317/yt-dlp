@@ -124,19 +124,19 @@ class PlanetRadioOnDemandIE(InfoExtractor):
             info['preference'] -= 1
         return info
     
-    def _real_extract(self, url):
-        station, episode = self._match_valid_url(url).group('station', 'episode')
-            
-        formats = []
-        
-        station_meta = self._download_json(f'https://listenapi.planetradio.co.uk/api9.2/listenagaindadi/{station}', station)
-
-        episode_meta = {}
+    def _find_episode(self, episode_id, station_meta):
         for date, episodes in station_meta.items():
             for ep in episodes:
-                if ep['episodeid'] == int(episode):
-                    episode_meta = ep
-        
+                if ep['episodeid'] == int(episode_id):
+                    return ep
+    
+    def _real_extract(self, url):
+        station, episode = self._match_valid_url(url).group('station', 'episode')
+
+        formats = []
+        station_meta = self._download_json(f'https://listenapi.planetradio.co.uk/api9.2/listenagaindadi/{station}', station)
+        episode_meta = self._find_episode(episode, station_meta)
+
         formats.append(self._get_format_dict(episode_meta.get('mediaurl')))
         formats.append(self._get_format_dict(episode_meta.get('mediaurl_mp3')))
         
