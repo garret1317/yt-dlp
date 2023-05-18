@@ -3,12 +3,10 @@ import time
 from .common import InfoExtractor
 from ..utils import (
     determine_ext,
-    HEADRequest,
     update_url_query,
     urlhandle_detect_ext,
     traverse_obj
 )
-
 
 class PlanetRadioLiveIE(InfoExtractor):
     _VALID_URL = r'https?://(?:planetradio\.co\.uk|radioplay\.(dk|no|fi)|soundis\.(ro|gr))/(?P<id>[\w|-]+)/(?:player|spiller)/$'
@@ -18,15 +16,19 @@ class PlanetRadioLiveIE(InfoExtractor):
         'info_dict': {
             'id': 'kiss',
             'ext': 'm4a',
-            'title': str,
+            'title': 're:^KISS.+$',
             'description': 'The Beat Of The UK',
             'live_status': 'is_live',
+            'tags': ['Pop', 'Urban'],
         }
     }, {
         'url': 'https://radioplay.no/radio-rock/spiller/',
         'info_dict': {
             'id': 'radio-rock',
-            'ext': 'm4a',
+            'ext': 'mp3',
+            'title': 're:^Radio Rock.+$',
+            'description': 'Ekte Rock',
+            'live_status': 'is_live',
         }
     }]
 
@@ -46,10 +48,12 @@ class PlanetRadioLiveIE(InfoExtractor):
             else:
                 seen_urls.append(url)
                 url = update_url_query(url, {'aw_0_1st.skey': int(time.time())})
+                # something to do with the advertising provider - aw = https://www.adswizz.com/
+                # source: api has a lot of keys about Adswizz
                 stream_type = stream.get('streamType')
                 info = {
                     'vcodec': 'none',
-    #                'quality': -1
+                #    'quality': -1
                 }
 
                 format_id = f'{stream_type}-{stream["streamQuality"]}'
@@ -61,7 +65,7 @@ class PlanetRadioLiveIE(InfoExtractor):
                     info['url'] = url
                     info['tbr'] = stream.get('streamBitRate')
                     info['abr'] = info.get('tbr')
-                
+
                 if not determine_ext(url, default_ext=False):
                     urlh = self._request_webpage(url, station_id, note='Determining source extension')
                     ext = urlhandle_detect_ext(urlh)
@@ -73,7 +77,7 @@ class PlanetRadioLiveIE(InfoExtractor):
                 elif stream_type == 'mp3':
                     info['ext'] = 'mp3'
     #                quality -= 1
-    
+
                 if stream.get('streamPremium'):
                     info['format_note'] = 'Premium'
                     info['preference'] = 1
@@ -93,10 +97,12 @@ class PlanetRadioLiveIE(InfoExtractor):
         return {
             'id': station_id,
             'title': meta['stationName'],
-            'description': meta.get('stationStrapline'),
+            'tags': meta.get('stationGenreTags'),
+            'description': meta.get('positioningStatementDescription') or meta.get('stationStrapline'),
             'is_live': True,
             'formats': formats,
         }
+
 
 class PlanetRadioOnDemandIE(InfoExtractor):
     _VALID_URL = r'https?://(?:planetradio\.co\.uk|radioplay\.(dk|no|fi)|soundis\.(ro|gr))/(?P<station>[\w|-]+)/player/(?P<episode>\d+)/?$'
@@ -111,7 +117,7 @@ class PlanetRadioOnDemandIE(InfoExtractor):
             'duration': 7200,
         }
     }]
-    
+
     def _get_format_dict(self, url):
         info = {
             'url': url,
@@ -123,13 +129,13 @@ class PlanetRadioOnDemandIE(InfoExtractor):
         if info['ext'] == 'mp3':
             info['preference'] -= 1
         return info
-    
+
     def _find_episode(self, episode_id, station_meta):
         for date, episodes in station_meta.items():
             for ep in episodes:
                 if ep['episodeid'] == int(episode_id):
                     return ep
-    
+
     def _real_extract(self, url):
         station, episode = self._match_valid_url(url).group('station', 'episode')
 
@@ -139,7 +145,7 @@ class PlanetRadioOnDemandIE(InfoExtractor):
 
         formats.append(self._get_format_dict(episode_meta.get('mediaurl')))
         formats.append(self._get_format_dict(episode_meta.get('mediaurl_mp3')))
-        
+
         return {
             'id': episode,
             'duration': episode_meta['duration'],
