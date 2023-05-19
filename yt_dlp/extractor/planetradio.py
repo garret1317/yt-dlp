@@ -9,7 +9,7 @@ from ..utils import (
 )
 
 class PlanetRadioLiveIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:planetradio\.co\.uk|radioplay\.(dk|no|fi)|soundis\.(ro|gr))/(?P<id>[\w|-]+)/(?:player|spiller)/$'
+    _VALID_URL = r'https?://(?:planetradio\.co\.uk|radioplay\.(dk|no|fi|se)|soundis\.(ro|gr))/(?P<id>[\w|-]+)/(?:player|spiller|afspiller|spelare)/?$'
     IE_DESC = "planetradio.co.uk, radioplay.dk, radioplay.no, radioplay.fi, soundis.ro, soundis.gr"
     _TESTS = [{
         'url': 'https://planetradio.co.uk/kiss/player/',
@@ -29,7 +29,66 @@ class PlanetRadioLiveIE(InfoExtractor):
             'title': 're:^Radio Rock.+$',
             'description': 'Ekte Rock',
             'live_status': 'is_live',
-        }
+        },
+    }, {
+        'url': 'https://radioplay.dk/nova/afspiller/',
+        'info_dict': {
+            'id': 'nova',
+            'ext': 'm4a',
+            'tags': ['Pop'],
+            'description': 'Lyden af i dag',
+            'title': 're:^NOVA.+$',
+            'live_status': 'is_live',
+        },
+    }, {
+        'url': 'https://radioplay.fi/basso/player/',
+        'info_dict': {
+            'id': 'basso',
+            'ext': 'm4a',
+            'description': 'Basso elää ja hengittää musiikkia',
+            'title': 're:^Basso.+$',
+            'live_status': 'is_live',
+        },
+    }, {
+        'url': 'https://soundis.ro/kissfm/player/',
+        'info_dict': {
+            'id': 'kissfm',
+            'ext': 'm4a',
+            'tags': ['Pop'],
+            'live_status': 'is_live',
+            'title': 're:^Kiss FM.+$',
+            'description': '# 1 Hit Radio',
+        },
+    }, {
+        'url': 'https://soundis.gr/ant1radio/player/',
+        'info_dict': {
+            'id': 'ant1radio',
+            'ext': 'm4a',
+            'live_status': 'is_live',
+            'tags': ['Pop'],
+            'description': 'Τα καλύτερα τραγούδια παίζουν εδώ',
+            'title': 're:^Ant1 Radio.+$',
+        },
+    }, {
+        'url': 'https://radioplay.se/rockklassiker/spelare/',
+        'info_dict': {
+            'id': 'rockklassiker',
+            'ext': 'mp3',
+            'live_status': 'is_live',
+            'description': 'Det bästa från 70- 80- & 90-talen',
+            'title': 're:^Rockklassiker.+$',
+        },
+    }, {
+        # premium only
+        'url': 'https://planetradio.co.uk/avant-garde/player/',
+        'info_dict': {
+            'id': 'avant-garde',
+            'ext': 'm4a',
+            'live_status': 'is_live',
+            'title': 're:^Avant Garde.+$',
+            'tags': ['Jazz, Blues & Soul'],
+            'description': 'md5:032a49aeee56cda5644df47f5a1afdd0',
+        },
     }]
 
     def _real_extract(self, url):
