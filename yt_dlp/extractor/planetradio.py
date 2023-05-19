@@ -8,8 +8,10 @@ from ..utils import (
     traverse_obj
 )
 
+_SITES = r'https?://(?:planetradio\.co\.uk|radioplay\.(dk|no|fi|se)|soundis\.(ro|gr))'
+
 class PlanetRadioLiveIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:planetradio\.co\.uk|radioplay\.(dk|no|fi|se)|soundis\.(ro|gr))/(?P<id>[\w|-]+)/(?:player|spiller|afspiller|spelare)/?$'
+    _VALID_URL = _SITES + r'/(?P<id>[\w|-]+)/(?:player|spiller|afspiller|spelare)/?$'
     IE_DESC = "planetradio.co.uk, radioplay.dk, radioplay.no, radioplay.fi, soundis.ro, soundis.gr"
     _TESTS = [{
         'url': 'https://planetradio.co.uk/kiss/player/',
@@ -164,7 +166,7 @@ class PlanetRadioLiveIE(InfoExtractor):
 
 
 class PlanetRadioOnDemandIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:planetradio\.co\.uk|radioplay\.(dk|no|fi)|soundis\.(ro|gr))/(?P<station>[\w|-]+)/player/(?P<episode>\d+)/?$'
+    _VALID_URL = _SITES + r'/(?P<station>[\w|-]+)/player/(?P<episode>\d+)/?$'
     _TESTS = [{
         'url': 'https://planetradio.co.uk/kiss/player/209567378/',
         'info_dict': {
