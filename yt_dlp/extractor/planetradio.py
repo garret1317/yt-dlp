@@ -166,14 +166,14 @@ class PlanetRadioLiveIE(InfoExtractor):
 class PlanetRadioOnDemandIE(InfoExtractor):
     _VALID_URL = r'https?://(?:planetradio\.co\.uk|radioplay\.(dk|no|fi)|soundis\.(ro|gr))/(?P<station>[\w|-]+)/player/(?P<episode>\d+)/?$'
     _TESTS = [{
-        'url': 'https://planetradio.co.uk/kiss/player/208301192/',
+        'url': 'https://planetradio.co.uk/kiss/player/209567378/',
         'info_dict': {
-            'id': '208301192',
-            'title': 'Dance: Mark Knight',
+            'id': '209567378',
             'ext': 'm4a',
-            'thumbnail': 'md5:6198ea41a24e7176d3d58f66f3c33180',
-            'description': 'Get involved @KISSFMUK #KISSNights',
+            'description': 'md5:2f37a637e11c42e298876ce57febaf04',
             'duration': 7200,
+            'title': 'Dance: DJ S.K.T.',
+            'thumbnail': 'md5:2077890fdfba85e33000bd498f321874',
         }
     }]
 
