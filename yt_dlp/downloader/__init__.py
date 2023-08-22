@@ -26,6 +26,7 @@ from .dash import DashSegmentsFD
 from .external import FFmpegFD, get_external_downloader
 from .f4m import F4mFD
 from .fc2 import FC2LiveFD
+from .fmplapla import FMPlaPlaFD
 from .hls import HlsFD
 from .http import HttpFD
 from .ism import IsmFD
@@ -52,6 +53,7 @@ PROTOCOL_MAP = {
     'niconico_dmc': NiconicoDmcFD,
     'niconico_live': NiconicoLiveFD,
     'fc2_live': FC2LiveFD,
+    'fmplapla': FMPlaPlaFD,
     'websocket_frag': WebSocketFragmentFD,
     'youtube_live_chat': YoutubeLiveChatFD,
     'youtube_live_chat_replay': YoutubeLiveChatFD,
