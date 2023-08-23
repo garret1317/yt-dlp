@@ -1,3 +1,6 @@
+import base64
+import json
+
 from .common import (
     ExtractorError,
     InfoExtractor,
@@ -6,7 +9,7 @@ from ..utils import traverse_obj
 
 
 class FMPlaPlaBaseIE(InfoExtractor):
-
+    _GEO_BYPASS = False
     _origin = None
     _api = None
 
@@ -29,10 +32,16 @@ class FMPlaPlaBaseIE(InfoExtractor):
         stream_info = self._download_json(self._api.format(station_id=station_id), station_id,
                                           headers={"Origin": self._origin}, data=b'',
                                           note='Getting stream token')
+
+        token = stream_info.get('token')
+        payload = json.loads(base64.b64decode(token.split('.')[1] + "=="))
+        if payload.get('sub').startswith('/announce'):
+            self.raise_geo_restricted(countries=['JP'])
+
         return {
             'protocol': 'fmplapla',
             'url': stream_info.get('location'),
-            'token': stream_info.get('token'),
+            'token': token,
             'ext': 'ogg',
             'live_status': 'is_live',
             'vcodec': 'none',
