@@ -40,6 +40,7 @@ class FMPlaPlaBaseIE(InfoExtractor):
             **traverse_obj(station_info, {
                 'id': 'id',
                 'title': 'name',
+                'description': 'description',
             }),
             'thumbnails': thumbnails,
         }
@@ -62,3 +63,23 @@ class FMPlaPlaIE(FMPlaPlaBaseIE):
 
     _origin = 'https://fmplapla.com'
     _api = 'https://fmplapla.com/api/select_stream?station={station_id}&burst=5'
+
+
+class JCBASimulIE(FMPlaPlaBaseIE):
+    _VALID_URL = r'https://www.jcbasimul\.com/(?P<id>[^/]+)'
+    _TESTS = [{
+        'url': 'https://www.jcbasimul.com/yonezawancvfm',
+        'info_dict': {
+            'title': 're:^エフエムNCV .+$',
+            'id': 'yonezawancvfm',
+            'ext': 'ogg',
+            'description': '山形県南、置賜地方の情報・魅力がつまったエフエムNCVおきたまGO！米沢市から放送中！',
+            'thumbnail': 'md5:93bea02cdf5c38921402434725fba31d',
+            'live_status': 'is_live',
+            'token': str,
+        },
+        'params': {'skip_download': True},
+    }]
+
+    _origin = 'https://www.jcbasimul.com'
+    _api = 'https://api.radimo.smen.biz/api/v1/select_stream?station={station_id}&channel=0&quality=high&burst=5'
