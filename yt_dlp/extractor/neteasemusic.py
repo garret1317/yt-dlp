@@ -76,7 +76,7 @@ class NetEaseMusicBaseIE(InfoExtractor):
              for [k, v] in cookie.items()])
 
         headers = {
-            'User-Agent': self.extractor.get_param('http_headers')['User-Agent'],
+            'User-Agent': self.get_param('http_headers')['User-Agent'],
             'Content-Type': 'application/x-www-form-urlencoded',
             'Referer': 'https://music.163.com',
             'Cookie': cookie,
